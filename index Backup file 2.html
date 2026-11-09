@@ -1,0 +1,1032 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digital Dimag</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+  --accent:#6c8cff;
+  --glass:rgba(15,25,45,.88);
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  color:white;
+  height:100vh;
+  overflow:hidden;
+  background:linear-gradient(135deg,#101b40,#174e79,#167b91);
+}
+
+button,input,textarea{font:inherit}
+button{cursor:pointer;border:0}
+
+.desktop{
+  height:calc(100vh - 55px);
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.desktop-icon{
+  width:105px;
+  padding:12px 8px;
+  text-align:center;
+  border-radius:12px;
+  cursor:pointer;
+  user-select:none;
+  text-shadow:0 2px 5px #000;
+}
+
+.desktop-icon:hover{
+  background:#ffffff25;
+}
+
+.desktop-icon span{
+  display:block;
+  font-size:36px;
+  margin-bottom:7px;
+}
+
+.taskbar{
+  position:absolute;
+  bottom:0;
+  height:55px;
+  width:100%;
+  background:rgba(12,18,34,.88);
+  backdrop-filter:blur(18px);
+  display:flex;
+  align-items:center;
+  padding:0 18px;
+  gap:15px;
+  border-top:1px solid #ffffff22;
+}
+
+.task-button{
+  background:transparent;
+  color:white;
+  font-size:22px;
+  padding:7px 10px;
+  border-radius:9px;
+}
+
+.task-button:hover{background:#ffffff20}
+
+.task-label{font-weight:bold}
+
+.clock{
+  margin-left:auto;
+  text-align:right;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.start-menu{
+  position:absolute;
+  bottom:65px;
+  left:12px;
+  width:290px;
+  padding:18px;
+  background:rgba(17,28,49,.97);
+  border:1px solid #ffffff30;
+  border-radius:16px;
+  box-shadow:0 15px 45px #0008;
+  display:none;
+  z-index:20;
+  backdrop-filter:blur(20px);
+}
+
+.start-menu h3{margin:0 0 12px}
+
+.start-item{
+  display:block;
+  width:100%;
+  padding:12px;
+  margin:5px 0;
+  border-radius:9px;
+  background:#ffffff12;
+  color:white;
+  text-align:left;
+}
+
+.start-item:hover{background:#ffffff28}
+
+.window{
+  position:absolute;
+  top:4%;
+  left:4%;
+  width:92%;
+  height:88%;
+  background:#f4f6fb;
+  color:#182238;
+  border-radius:15px;
+  box-shadow:0 20px 70px #0009;
+  overflow:hidden;
+  display:none;
+  z-index:10;
+}
+
+.window-head{
+  height:45px;
+  background:#e5eaf3;
+  display:flex;
+  align-items:center;
+  padding:0 14px;
+  font-weight:bold;
+}
+
+.window-close{
+  margin-left:auto;
+  padding:7px 13px;
+  border-radius:7px;
+  background:#e45d69;
+  color:white;
+}
+
+.window-content{
+  height:calc(100% - 45px);
+  overflow:auto;
+  padding:20px;
+}
+
+.app-button{
+  background:#2868c7;
+  color:white;
+  padding:10px 14px;
+  border-radius:8px;
+  margin:4px;
+}
+
+.app-button:hover{filter:brightness(1.12)}
+
+input,textarea{
+  border:1px solid #cbd3df;
+  border-radius:9px;
+  padding:12px;
+  outline:none;
+}
+
+textarea{resize:vertical}
+
+.file-row{
+  padding:13px;
+  border-bottom:1px solid #ddd;
+}
+
+#aiLayout{
+  display:grid;
+  grid-template-columns:250px minmax(0,1fr);
+  height:100%;
+  margin:-20px;
+}
+
+.ai-sidebar{
+  background:#172238;
+  color:white;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+.brand{
+  font-size:19px;
+  font-weight:bold;
+  padding:8px 5px 18px;
+}
+
+.new-chat{
+  background:#ffffff16;
+  border:1px solid #ffffff30;
+  color:white;
+  border-radius:9px;
+  padding:12px;
+  text-align:left;
+  width:100%;
+}
+
+.new-chat:hover{background:#ffffff28}
+
+.history-heading{
+  font-size:11px;
+  color:#aab8ca;
+  margin:22px 5px 8px;
+  letter-spacing:1px;
+}
+
+.history-search{
+  width:100%;
+  margin-top:10px;
+  background:#ffffff12;
+  color:white;
+  border:1px solid #ffffff30;
+}
+
+.history-search::placeholder{color:#b6c1d2}
+
+#historyList{
+  overflow:auto;
+  flex:1;
+  min-height:0;
+  margin-top:8px;
+}
+
+.history-item{
+  display:block;
+  width:100%;
+  text-align:left;
+  color:#e5eaf3;
+  background:transparent;
+  padding:10px;
+  border-radius:8px;
+  margin:3px 0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.history-item:hover,
+.history-item.active{
+  background:#ffffff1c;
+}
+
+.sidebar-bottom{
+  border-top:1px solid #ffffff25;
+  padding-top:12px;
+  margin-top:10px;
+  font-size:12px;
+  color:#aab8ca;
+}
+
+.ai-main{
+  background:#f8f9fc;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+}
+
+.ai-topbar{
+  height:55px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 20px;
+  border-bottom:1px solid #e5e8ef;
+  color:#1b2940;
+  font-weight:bold;
+}
+
+.ai-model{
+  font-size:12px;
+  font-weight:normal;
+  color:#65738a;
+}
+
+#chatBox{
+  flex:1;
+  overflow:auto;
+  padding:25px max(18px,8%);
+  min-height:0;
+}
+
+.welcome{
+  max-width:650px;
+  margin:10vh auto 20px;
+  text-align:center;
+  color:#24334b;
+}
+
+.welcome h1{font-size:30px}
+.welcome p{color:#758198}
+
+.suggestion-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:25px;
+}
+
+.suggestion{
+  background:white;
+  color:#34425a;
+  border:1px solid #e0e5ee;
+  padding:14px;
+  border-radius:12px;
+  text-align:left;
+}
+
+.suggestion:hover{background:#edf3ff}
+
+.message{
+  max-width:780px;
+  margin:15px auto;
+  padding:14px 17px;
+  border-radius:14px;
+  line-height:1.6;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  color:#24334b;
+}
+
+.user{
+  background:#e5edff;
+  margin-left:auto;
+  width:fit-content;
+  max-width:85%;
+}
+
+.ai{
+  background:white;
+  border:1px solid #e7eaf0;
+  margin-right:auto;
+  width:100%;
+}
+
+.ai-label{
+  font-size:11px;
+  font-weight:bold;
+  color:#5270ad;
+  margin-bottom:6px;
+}
+
+.composer-area{
+  padding:12px 7% 18px;
+  background:#f8f9fc;
+}
+
+.composer{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  background:white;
+  border:1px solid #dce2ec;
+  border-radius:16px;
+  padding:9px;
+  box-shadow:0 3px 14px #0000000a;
+}
+
+#chatInput{
+  flex:1;
+  min-width:0;
+  height:48px;
+  max-height:130px;
+  border:0;
+  resize:none;
+  background:transparent;
+}
+
+#chatInput:focus{outline:none}
+
+.send-button,.voice-button{
+  width:42px;
+  height:42px;
+  border-radius:11px;
+  color:white;
+  background:#2868c7;
+  font-size:18px;
+}
+
+.voice-button{
+  background:#edf2fa;
+  color:#34425a;
+}
+
+.send-button:disabled{opacity:.5}
+
+.disclaimer{
+  font-size:11px;
+  color:#8a94a5;
+  text-align:center;
+  margin-top:9px;
+}
+
+#note{
+  width:100%;
+  height:65vh;
+}
+
+.setting-card{
+  background:white;
+  border:1px solid #ddd;
+  padding:15px;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+@media(max-width:650px){
+  .window{
+    top:2%;
+    left:2%;
+    width:96%;
+    height:94%;
+  }
+
+  #aiLayout{
+    grid-template-columns:1fr;
+  }
+
+  .ai-sidebar{
+    max-height:165px;
+  }
+
+  #historyList{
+    display:flex;
+    gap:5px;
+    max-height:55px;
+  }
+
+  .history-item{
+    width:145px;
+    flex-shrink:0;
+  }
+
+  .sidebar-bottom{display:none}
+  .suggestion-grid{grid-template-columns:1fr}
+  .task-label{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<!-- DESKTOP -->
+<div class="desktop">
+
+  <div class="desktop-icon" onclick="openApp('files')">
+    <span>📁</span>File Manager
+  </div>
+
+  <div class="desktop-icon" onclick="openApp('browser')">
+    <span>🌐</span>Browser
+  </div>
+
+  <div class="desktop-icon" onclick="openApp('notes')">
+    <span>📝</span>Notes
+  </div>
+
+  <div class="desktop-icon" onclick="openApp('terminal')">
+    <span>💻</span>Terminal
+  </div>
+
+  <div class="desktop-icon" onclick="openApp('settings')">
+    <span>⚙️</span>Settings
+  </div>
+
+  <div class="desktop-icon" onclick="openApp('ai')">
+    <span>🤖</span>Digital AI
+  </div>
+
+</div>
+
+<!-- START MENU -->
+<div class="start-menu" id="startMenu">
+  <h3>🪟 Digital Dimag</h3>
+  <button class="start-item" onclick="openApp('ai')">🤖 Digital AI</button>
+  <button class="start-item" onclick="openApp('files')">📁 File Manager</button>
+  <button class="start-item" onclick="openApp('browser')">🌐 Browser</button>
+  <button class="start-item" onclick="openApp('notes')">📝 Notes</button>
+  <button class="start-item" onclick="openApp('settings')">⚙️ Settings</button>
+</div>
+
+<!-- TASKBAR -->
+<div class="taskbar">
+  <button class="task-button" onclick="toggleStart()">⊞</button>
+  <button class="task-button" onclick="openApp('ai')">🤖</button>
+  <span class="task-label">Digital Dimag</span>
+  <div class="clock" id="clock"></div>
+</div>
+
+<!-- APP WINDOW -->
+<div class="window" id="win">
+  <div class="window-head">
+    <span id="heading">App</span>
+    <button class="window-close" onclick="closeApp()">✕</button>
+  </div>
+  <div class="window-content" id="content"></div>
+</div>
+
+<script>
+const win=document.getElementById('win');
+const content=document.getElementById('content');
+
+const CHATS_KEY='digitalAI_saved_chats_v1';
+const OLD_CHAT_KEY='digitalAI_chat_history_v1';
+
+let savedChats=[];
+let chatHistory=[];
+let currentChatId=Date.now().toString();
+let isSending=false;
+
+// Load saved conversations
+try{
+  const stored=JSON.parse(localStorage.getItem(CHATS_KEY)||'[]');
+  if(Array.isArray(stored)) savedChats=stored;
+}catch(error){
+  savedChats=[];
+}
+
+// Migrate previous single-chat storage
+try{
+  const old=localStorage.getItem(OLD_CHAT_KEY);
+
+  if(savedChats.length===0 && old){
+    const oldMessages=JSON.parse(old);
+
+    if(Array.isArray(oldMessages) && oldMessages.length){
+      savedChats.push({
+        id:currentChatId,
+        title:'Previous Conversation',
+        updatedAt:Date.now(),
+        messages:oldMessages
+      });
+
+      localStorage.setItem(CHATS_KEY,JSON.stringify(savedChats));
+    }
+  }
+}catch(error){
+  console.log('Old chat migration skipped.');
+}
+
+// Save chats
+function saveAllChats(){
+  try{
+    localStorage.setItem(CHATS_KEY,JSON.stringify(savedChats));
+  }catch(error){
+    alert('Browser storage is full. Please export or remove some old chats.');
+  }
+}
+
+function saveChatHistory(){
+  if(chatHistory.length===0)return;
+
+  const first=chatHistory.find(item=>item.role==='user');
+  const title=first ? first.text.slice(0,40) : 'New Conversation';
+
+  const index=savedChats.findIndex(chat=>chat.id===currentChatId);
+
+  const current={
+    id:currentChatId,
+    title:title,
+    updatedAt:Date.now(),
+    messages:chatHistory
+  };
+
+  if(index>=0){
+    savedChats[index]=current;
+  }else{
+    savedChats.unshift(current);
+  }
+
+  saveAllChats();
+  renderHistoryList();
+}
+
+// Start menu
+function toggleStart(){
+  const menu=document.getElementById('startMenu');
+  menu.style.display=menu.style.display==='block'?'none':'block';
+}
+
+// Open apps
+function openApp(app){
+  document.getElementById('startMenu').style.display='none';
+  win.style.display='block';
+
+  const apps={
+    files:[
+      '📁 File Manager',
+      `<h2>My Files</h2>
+       <div class="file-row">📄 README.md</div>
+       <div class="file-row">🌐 index.html</div>
+       <div class="file-row">⚙️ server.mjs</div>
+       <p>Your DigitalDimag project files are stored in GitHub Codespaces.</p>`
+    ],
+
+    browser:[
+      '🌐 Browser',
+      `<h2>Internet</h2>
+       <p>Open a website in a new browser tab:</p>
+       <button class="app-button" onclick="window.open('https://www.google.com','_blank')">Google</button>
+       <button class="app-button" onclick="window.open('https://www.youtube.com','_blank')">YouTube</button>
+       <button class="app-button" onclick="window.open('https://aistudio.google.com','_blank')">Google AI Studio</button>`
+    ],
+
+    notes:[
+      '📝 Notes',
+      `<h2>My Notes</h2>
+       <textarea id="note" placeholder="Write your notes here..."></textarea>
+       <br><button class="app-button" onclick="saveNotes()">Save Notes</button>
+       <span id="noteStatus"></span>`
+    ],
+
+    terminal:[
+      '💻 Terminal',
+      `<h2>Cloud Terminal</h2>
+       <p>Your real Linux terminal is available in the Codespaces Terminal panel.</p>
+       <p>To start the project, run:</p>
+       <code>node server.mjs</code>`
+    ],
+
+    settings:[
+      '⚙️ Settings',
+      `<h2>Desktop Settings</h2>
+       <div class="setting-card">
+         <b>Choose Wallpaper</b><br>
+         <button class="app-button" onclick="setWallpaper('ocean')">Ocean</button>
+         <button class="app-button" onclick="setWallpaper('sunset')">Sunset</button>
+         <button class="app-button" onclick="setWallpaper('forest')">Forest</button>
+       </div>
+       <div class="setting-card">
+         <b>About Digital Dimag</b>
+         <p>Your personal AI-powered desktop workspace.</p>
+       </div>`
+    ],
+
+    ai:[
+      '🤖 Digital AI',
+      `
+      <div id="aiLayout">
+
+        <aside class="ai-sidebar">
+          <div class="brand">🧠 Digital Dimag</div>
+
+          <button class="new-chat" onclick="newChat()">＋ New Chat</button>
+
+          <input
+            class="history-search"
+            id="historySearch"
+            placeholder="🔎 Search conversations..."
+            oninput="renderHistoryList()"
+          >
+
+          <div class="history-heading">YOUR CONVERSATIONS</div>
+          <div id="historyList"></div>
+
+          <div class="sidebar-bottom">
+            Personal AI Workspace<br>
+            Powered by your Gemini API
+          </div>
+        </aside>
+
+        <main class="ai-main">
+
+          <div class="ai-topbar">
+            <span>Digital AI</span>
+            <span class="ai-model">Personal Assistant</span>
+          </div>
+
+          <div id="chatBox"></div>
+
+          <div class="composer-area">
+            <div class="composer">
+              <button class="voice-button" id="voiceBtn" onclick="startVoiceInput()" title="Voice input">🎤</button>
+
+              <textarea
+                id="chatInput"
+                placeholder="Message Digital Dimag..."
+                rows="1"
+              ></textarea>
+
+              <button class="send-button" id="sendBtn" onclick="sendChat()">➤</button>
+            </div>
+
+            <div class="disclaimer">
+              Digital AI can make mistakes. Check important information.
+            </div>
+          </div>
+
+        </main>
+      </div>
+      `
+    ]
+  };
+
+  document.getElementById('heading').textContent=apps[app][0];
+  content.innerHTML=apps[app][1];
+
+  if(app==='notes'){
+    document.getElementById('note').value=
+      localStorage.getItem('digitalnotes')||'';
+  }
+
+  if(app==='ai'){
+    renderChatHistory();
+    renderHistoryList();
+
+    const input=document.getElementById('chatInput');
+
+    input.addEventListener('keydown',event=>{
+      if(event.key==='Enter'&&!event.shiftKey){
+        event.preventDefault();
+        sendChat();
+      }
+    });
+  }
+}
+
+function closeApp(){
+  win.style.display='none';
+}
+
+// Notes
+function saveNotes(){
+  const value=document.getElementById('note').value;
+  localStorage.setItem('digitalnotes',value);
+  document.getElementById('noteStatus').textContent=' ✓ Saved';
+}
+
+// Wallpaper
+function setWallpaper(type){
+  const wallpapers={
+    ocean:'linear-gradient(135deg,#101b40,#174e79,#167b91)',
+    sunset:'linear-gradient(135deg,#421b57,#a14b77,#e18b73)',
+    forest:'linear-gradient(135deg,#123c29,#25805c,#a1b96c)'
+  };
+
+  document.body.style.background=wallpapers[type];
+}
+
+// History list
+function renderHistoryList(){
+  const list=document.getElementById('historyList');
+  if(!list)return;
+
+  list.innerHTML='';
+
+  const search=(document.getElementById('historySearch')?.value||'')
+    .toLowerCase();
+
+  const sorted=[...savedChats].sort(
+    (a,b)=>(b.updatedAt||0)-(a.updatedAt||0)
+  );
+
+  const filtered=sorted.filter(chat=>
+    (chat.title||'').toLowerCase().includes(search)
+  );
+
+  if(filtered.length===0){
+    const empty=document.createElement('div');
+    empty.textContent='No conversations found.';
+    empty.style.cssText='padding:10px;color:#aab8ca;font-size:12px';
+    list.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach(chat=>{
+    const button=document.createElement('button');
+    button.className='history-item'+
+      (chat.id===currentChatId?' active':'');
+    button.textContent=chat.title||'Untitled Chat';
+    button.title=button.textContent;
+    button.onclick=()=>openSavedChat(chat.id);
+    list.appendChild(button);
+  });
+}
+
+// Open previous chat
+function openSavedChat(id){
+  if(isSending){
+    alert('Please wait until the current AI response finishes.');
+    return;
+  }
+
+  saveChatHistory();
+
+  const selected=savedChats.find(chat=>chat.id===id);
+  if(!selected)return;
+
+  currentChatId=selected.id;
+  chatHistory=Array.isArray(selected.messages)
+    ?selected.messages.map(item=>({...item}))
+    :[];
+
+  renderChatHistory();
+  renderHistoryList();
+}
+
+// New chat without deleting old chats
+function newChat(){
+  if(isSending)return;
+
+  saveChatHistory();
+
+  currentChatId=Date.now().toString()+
+    Math.random().toString(36).slice(2,8);
+
+  chatHistory=[];
+
+  renderChatHistory();
+  renderHistoryList();
+
+  const input=document.getElementById('chatInput');
+  if(input)input.focus();
+}
+
+// Add message to chat screen
+function addMessage(role,text){
+  const box=document.getElementById('chatBox');
+  if(!box)return null;
+
+  const message=document.createElement('div');
+  message.className='message '+(role==='user'?'user':'ai');
+
+  if(role!=='user'){
+    const label=document.createElement('div');
+    label.className='ai-label';
+    label.textContent='🧠 DIGITAL DIMAG';
+    message.appendChild(label);
+  }
+
+  const body=document.createElement('div');
+  body.textContent=text;
+  message.appendChild(body);
+
+  box.appendChild(message);
+  box.scrollTop=box.scrollHeight;
+
+  return body;
+}
+
+// Render current chat
+function renderChatHistory(){
+  const box=document.getElementById('chatBox');
+  if(!box)return;
+
+  box.innerHTML='';
+
+  if(chatHistory.length===0){
+    const welcome=document.createElement('div');
+    welcome.className='welcome';
+
+    const heading=document.createElement('h1');
+    heading.textContent='Hello! 👋';
+
+    const paragraph=document.createElement('p');
+    paragraph.textContent='What can I help you with today?';
+
+    const grid=document.createElement('div');
+    grid.className='suggestion-grid';
+
+    const suggestions=[
+      '💡 Give me some creative ideas',
+      '💻 Help me write code',
+      '📚 Teach me something new',
+      '🚀 Help me plan a project'
+    ];
+
+    suggestions.forEach(text=>{
+      const button=document.createElement('button');
+      button.className='suggestion';
+      button.textContent=text;
+      button.onclick=()=>{
+        const input=document.getElementById('chatInput');
+        input.value=text.replace(/^[^ ]+ /,'');
+        sendChat();
+      };
+      grid.appendChild(button);
+    });
+
+    welcome.append(heading,paragraph,grid);
+    box.appendChild(welcome);
+    return;
+  }
+
+  chatHistory.forEach(item=>{
+    addMessage(item.role,item.text);
+  });
+}
+
+// Send AI request
+async function sendChat(){
+  const input=document.getElementById('chatInput');
+  const button=document.getElementById('sendBtn');
+  const box=document.getElementById('chatBox');
+
+  if(!input||!button||isSending)return;
+
+  const message=input.value.trim();
+  if(!message)return;
+
+  const previousHistory=chatHistory.slice(-20);
+
+  chatHistory.push({role:'user',text:message});
+
+  saveChatHistory();
+
+  const welcome=box.querySelector('.welcome');
+  if(welcome)welcome.remove();
+
+  addMessage('user',message);
+  input.value='';
+
+  isSending=true;
+  button.disabled=true;
+  button.textContent='…';
+
+  const loading=addMessage('model','Digital Dimag is thinking...');
+
+  try{
+    const response=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message:message,
+        history:previousHistory
+      })
+    });
+
+    const raw=await response.text();
+
+    let data;
+    try{
+      data=JSON.parse(raw);
+    }catch(error){
+      throw new Error('Invalid server response. Check your Codespaces Terminal.');
+    }
+
+    if(!response.ok){
+      throw new Error(data.error||'AI request failed.');
+    }
+
+    const reply=data.reply||'No response received.';
+
+    if(loading)loading.textContent=reply;
+
+    chatHistory.push({role:'model',text:reply});
+    saveChatHistory();
+
+  }catch(error){
+    if(loading)loading.textContent='Error: '+error.message;
+    saveChatHistory();
+  }
+
+  isSending=false;
+  button.disabled=false;
+  button.textContent='➤';
+
+  if(box)box.scrollTop=box.scrollHeight;
+}
+
+// Browser voice input
+function startVoiceInput(){
+  const SpeechRecognition=
+    window.SpeechRecognition||window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition){
+    alert('Voice input is not supported in this browser. Try Chrome.');
+    return;
+  }
+
+  const recognition=new SpeechRecognition();
+  recognition.lang='en-IN';
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
+
+  const voiceButton=document.getElementById('voiceBtn');
+  if(voiceButton)voiceButton.textContent='🔴';
+
+  recognition.onresult=event=>{
+    const transcript=event.results[0][0].transcript;
+    const input=document.getElementById('chatInput');
+
+    if(input){
+      input.value+=(input.value?' ':'')+transcript;
+      input.focus();
+    }
+  };
+
+  recognition.onerror=()=>{
+    alert('Voice input could not start. Check microphone permission.');
+  };
+
+  recognition.onend=()=>{
+    if(voiceButton)voiceButton.textContent='🎤';
+  };
+
+  recognition.start();
+}
+
+// Clock
+function tick(){
+  const now=new Date();
+
+  document.getElementById('clock').innerHTML=
+    now.toLocaleTimeString()+'<br>'+
+    now.toLocaleDateString();
+}
+
+tick();
+setInterval(tick,1000);
+
+</script>
+
+</body>
+</html>

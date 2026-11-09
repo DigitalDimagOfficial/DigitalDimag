@@ -1,0 +1,711 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Digital PC</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+color:white;
+background:linear-gradient(135deg,#101b40,#174e79,#167b91);
+height:100vh;
+overflow:hidden
+}
+
+.desktop{
+height:calc(100vh - 48px);
+padding:25px;
+display:flex;
+flex-direction:column;
+align-items:flex-start;
+gap:15px
+}
+
+.icon{
+width:100px;
+text-align:center;
+cursor:pointer;
+padding:12px;
+border-radius:10px
+}
+
+.icon:hover{background:#ffffff25}
+.emoji{font-size:38px;display:block;margin-bottom:8px}
+
+.taskbar{
+position:absolute;
+bottom:0;
+height:48px;
+width:100%;
+background:#101522ef;
+display:flex;
+align-items:center;
+padding:0 15px;
+gap:18px
+}
+
+.start{font-size:25px;cursor:pointer}
+.clock{margin-left:auto;text-align:right;font-size:13px}
+
+.window{
+position:absolute;
+top:5%;
+left:5%;
+width:min(850px,90vw);
+height:85vh;
+background:#f3f5fa;
+color:#182238;
+border-radius:12px;
+box-shadow:0 15px 55px #0008;
+display:none;
+overflow:hidden
+}
+
+.head{
+height:42px;
+background:#dce5f3;
+display:flex;
+align-items:center;
+padding:0 12px;
+font-weight:bold
+}
+
+.close{
+margin-left:auto;
+cursor:pointer;
+background:#e65c65;
+color:white;
+border:0;
+border-radius:5px;
+padding:6px 12px
+}
+
+.content{
+padding:20px;
+overflow:auto;
+height:calc(100% - 42px)
+}
+
+.file{padding:12px;border-bottom:1px solid #ddd}
+
+button{
+cursor:pointer;
+padding:10px;
+border:0;
+border-radius:7px;
+background:#2868c7;
+color:white;
+margin:5px
+}
+
+button:disabled{opacity:.5;cursor:not-allowed}
+
+textarea{
+width:100%;
+height:150px;
+padding:12px;
+border:1px solid #aaa;
+border-radius:8px;
+resize:vertical
+}
+
+#chatBox{
+height:calc(100% - 155px);
+min-height:220px;
+overflow:auto;
+background:white;
+border:1px solid #ddd;
+border-radius:8px;
+padding:12px;
+margin-bottom:10px
+}
+
+.message{
+padding:10px;
+margin:8px 0;
+border-radius:8px;
+white-space:pre-wrap;
+overflow-wrap:anywhere;
+line-height:1.5
+}
+
+.user{background:#dceaff;text-align:right}
+.ai{background:#e8f5e9}
+
+#chatInput{
+width:100%;
+height:65px;
+resize:none
+}
+
+.chatActions{
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+gap:5px
+}
+
+.smallText{font-size:12px;color:#666}
+
+#historyPanel{
+display:none;
+background:white;
+border:1px solid #ddd;
+border-radius:8px;
+padding:10px;
+margin-bottom:10px;
+max-height:200px;
+overflow-y:auto
+}
+
+.historyItem{
+display:block;
+width:100%;
+text-align:left;
+background:#edf3fc;
+color:#182238;
+margin:5px 0;
+padding:10px;
+border:1px solid #d5e0f0;
+}
+
+.historyItem:hover{
+background:#dceaff
+}
+
+.historyDate{
+display:block;
+font-size:11px;
+color:#666;
+margin-top:5px
+}
+
+.emptyHistory{
+color:#777;
+padding:10px;
+font-size:13px
+}
+</style>
+</head>
+
+<body>
+
+<div class="desktop">
+
+<div class="icon" onclick="openApp('files')">
+<span class="emoji">📁</span>File Manager
+</div>
+
+<div class="icon" onclick="openApp('browser')">
+<span class="emoji">🌐</span>Browser
+</div>
+
+<div class="icon" onclick="openApp('notes')">
+<span class="emoji">📝</span>Notes
+</div>
+
+<div class="icon" onclick="openApp('terminal')">
+<span class="emoji">💻</span>Terminal
+</div>
+
+<div class="icon" onclick="openApp('settings')">
+<span class="emoji">⚙️</span>Settings
+</div>
+
+<div class="icon" onclick="openApp('ai')">
+<span class="emoji">🤖</span>Digital AI
+</div>
+
+</div>
+
+<div class="taskbar">
+<span class="start" onclick="openApp('files')">🪟</span>
+<b>Digital PC</b>
+<div class="clock" id="clock"></div>
+</div>
+
+<div class="window" id="win">
+
+<div class="head">
+<span id="heading">App</span>
+<button class="close" onclick="closeApp()">✕</button>
+</div>
+
+<div class="content" id="content"></div>
+
+</div>
+
+<script>
+
+const win=document.getElementById('win');
+const content=document.getElementById('content');
+
+const CHATS_KEY='digitalAI_saved_chats_v1';
+const OLD_CHAT_KEY='digitalAI_chat_history_v1';
+
+let savedChats=[];
+let chatHistory=[];
+let currentChatId=Date.now().toString();
+
+try{
+
+savedChats=JSON.parse(
+localStorage.getItem(CHATS_KEY)||'[]'
+);
+
+if(!Array.isArray(savedChats)){
+savedChats=[];
+}
+
+}catch(error){
+savedChats=[];
+}
+
+// Migrate the old single-chat history
+try{
+
+const oldChat=localStorage.getItem(OLD_CHAT_KEY);
+
+if(savedChats.length===0 && oldChat){
+
+const oldMessages=JSON.parse(oldChat);
+
+if(Array.isArray(oldMessages) && oldMessages.length){
+
+savedChats.push({
+id:currentChatId,
+title:'Previous Conversation',
+updatedAt:Date.now(),
+messages:oldMessages
+});
+
+localStorage.setItem(
+CHATS_KEY,
+JSON.stringify(savedChats)
+);
+
+}
+
+}
+
+}catch(error){
+console.log('Old chat migration skipped.');
+}
+
+// Save current conversation separately
+function saveChatHistory(){
+
+if(chatHistory.length===0)return;
+
+const firstMessage=chatHistory.find(
+item=>item.role==='user'
+);
+
+const title=firstMessage
+?firstMessage.text.slice(0,35)
+:'New Conversation';
+
+const index=savedChats.findIndex(
+chat=>chat.id===currentChatId
+);
+
+const currentChat={
+id:currentChatId,
+title:title,
+updatedAt:Date.now(),
+messages:chatHistory
+};
+
+if(index>=0){
+savedChats[index]=currentChat;
+}else{
+savedChats.unshift(currentChat);
+}
+
+localStorage.setItem(
+CHATS_KEY,
+JSON.stringify(savedChats)
+);
+
+renderHistoryList();
+
+}
+
+// Render history list
+function renderHistoryList(){
+
+const list=document.getElementById('historyList');
+
+if(!list)return;
+
+list.innerHTML='';
+
+if(savedChats.length===0){
+
+const empty=document.createElement('div');
+empty.className='emptyHistory';
+empty.textContent='No previous conversations yet.';
+list.appendChild(empty);
+
+return;
+}
+
+const sortedChats=[...savedChats].sort(
+(a,b)=>b.updatedAt-a.updatedAt
+);
+
+sortedChats.forEach(chat=>{
+
+const button=document.createElement('button');
+
+button.className='historyItem';
+button.type='button';
+
+const title=document.createElement('strong');
+title.textContent=chat.title||'Untitled Chat';
+
+const date=document.createElement('span');
+date.className='historyDate';
+
+date.textContent=new Date(
+chat.updatedAt
+).toLocaleString();
+
+button.appendChild(title);
+button.appendChild(date);
+
+button.onclick=()=>openSavedChat(chat.id);
+
+list.appendChild(button);
+
+});
+
+}
+
+// Show or hide history
+function toggleHistory(){
+
+const panel=document.getElementById('historyPanel');
+
+if(!panel)return;
+
+panel.style.display=
+panel.style.display==='block'?'none':'block';
+
+renderHistoryList();
+
+}
+
+// Open an old conversation
+function openSavedChat(id){
+
+saveChatHistory();
+
+const selectedChat=savedChats.find(
+chat=>chat.id===id
+);
+
+if(!selectedChat)return;
+
+currentChatId=selectedChat.id;
+
+chatHistory=Array.isArray(selectedChat.messages)
+?[...selectedChat.messages]:[];
+
+renderChatHistory();
+
+const panel=document.getElementById('historyPanel');
+
+if(panel){
+panel.style.display='none';
+}
+
+}
+
+// Start a new conversation without deleting old ones
+function newChat(){
+
+saveChatHistory();
+
+currentChatId=Date.now().toString()+
+Math.random().toString(36).slice(2,7);
+
+chatHistory=[];
+
+renderChatHistory();
+renderHistoryList();
+
+const input=document.getElementById('chatInput');
+
+if(input){
+input.value='';
+input.focus();
+}
+
+}
+
+// App opening
+function openApp(app){
+
+win.style.display='block';
+
+const data={
+
+files:[
+'File Manager',
+'<h3>📁 My Files</h3><div class="file">📄 README.md</div><div class="file">🌐 index.html</div><div class="file">⚙️ server.mjs</div><p>Your DigitalDimag project files.</p>'
+],
+
+browser:[
+'Browser',
+'<h3>🌐 Internet</h3><p>Open your favourite websites:</p><button onclick="window.open(\'https://www.google.com\',\'_blank\')">Google</button><button onclick="window.open(\'https://www.youtube.com\',\'_blank\')">YouTube</button><button onclick="window.open(\'https://aistudio.google.com\',\'_blank\')">Google AI Studio</button>'
+],
+
+notes:[
+'Notes',
+'<h3>📝 My Notes</h3><textarea id="note" placeholder="Write your notes here..."></textarea><br><button onclick="localStorage.setItem(\'digitalnotes\',document.getElementById(\'note\').value);alert(\'Notes saved!\')">Save Notes</button>'
+],
+
+terminal:[
+'Terminal',
+'<h3>💻 Cloud Terminal</h3><p>Your real Linux terminal is available in the Codespaces Terminal panel.</p>'
+],
+
+settings:[
+'Settings',
+'<h3>⚙️ Desktop Settings</h3><p>Choose your wallpaper:</p><button onclick="document.body.style.background=\'linear-gradient(135deg,#101b40,#174e79,#167b91)\'">Ocean</button><button onclick="document.body.style.background=\'linear-gradient(135deg,#421b57,#a14b77,#e18b73)\'">Sunset</button><button onclick="document.body.style.background=\'linear-gradient(135deg,#123c29,#25805c,#a1b96c)\'">Forest</button>'
+],
+
+ai:[
+'🤖 Digital AI',
+`
+<div class="chatActions">
+<h3>🤖 Digital AI</h3>
+<div>
+<button onclick="toggleHistory()">📚 Chat History</button>
+<button onclick="newChat()">＋ New Chat</button>
+</div>
+</div>
+
+<div id="historyPanel">
+<h4>📚 Previous Conversations</h4>
+<div id="historyList"></div>
+</div>
+
+<div id="chatBox"></div>
+
+<textarea id="chatInput" placeholder="Type your message here..."></textarea>
+
+<div class="chatActions">
+<span class="smallText">Your conversations are saved on this browser.</span>
+<button id="sendBtn" onclick="sendChat()">Send Message 🚀</button>
+</div>
+`
+]
+
+};
+
+document.getElementById('heading').textContent=data[app][0];
+content.innerHTML=data[app][1];
+
+if(app==='notes'){
+
+document.getElementById('note').value=
+localStorage.getItem('digitalnotes')||'';
+
+}
+
+if(app==='ai'){
+
+renderChatHistory();
+renderHistoryList();
+
+document.getElementById('chatInput')
+.addEventListener('keydown',function(event){
+
+if(event.key==='Enter'&&!event.shiftKey){
+
+event.preventDefault();
+sendChat();
+
+}
+
+});
+
+}
+
+}
+
+// Add message to chat screen
+function addMessage(role,text){
+
+const box=document.getElementById('chatBox');
+
+if(!box)return;
+
+const message=document.createElement('div');
+
+message.className=
+'message '+(role==='user'?'user':'ai');
+
+message.textContent=
+(role==='user'?'You: ':'Digital AI: ')+text;
+
+box.appendChild(message);
+
+box.scrollTop=box.scrollHeight;
+
+return message;
+
+}
+
+// Display current conversation
+function renderChatHistory(){
+
+const box=document.getElementById('chatBox');
+
+if(!box)return;
+
+box.innerHTML='';
+
+if(chatHistory.length===0){
+
+addMessage(
+'model',
+'Hello! I am Digital AI. How can I help you?'
+);
+
+return;
+
+}
+
+chatHistory.forEach(item=>{
+
+addMessage(item.role,item.text);
+
+});
+
+}
+
+// Send message to AI server
+async function sendChat(){
+
+const input=document.getElementById('chatInput');
+const box=document.getElementById('chatBox');
+const button=document.getElementById('sendBtn');
+
+const message=input.value.trim();
+
+if(!message||button.disabled)return;
+
+chatHistory.push({
+role:'user',
+text:message
+});
+
+saveChatHistory();
+
+addMessage('user',message);
+
+input.value='';
+
+button.disabled=true;
+button.textContent='Thinking...';
+
+const loading=addMessage(
+'model',
+'Digital AI is thinking...'
+);
+
+try{
+
+const response=await fetch('/api/chat',{
+
+method:'POST',
+
+headers:{
+'Content-Type':'application/json'
+},
+
+body:JSON.stringify({
+
+message:message,
+
+history:chatHistory.slice(0,-1).slice(-20)
+
+})
+
+});
+
+const raw=await response.text();
+
+let data;
+
+try{
+
+data=JSON.parse(raw);
+
+}catch(error){
+
+throw new Error('Invalid server response. Check Terminal.');
+
+}
+
+if(!response.ok){
+
+throw new Error(data.error||'Request failed');
+
+}
+
+const reply=data.reply||'No response received.';
+
+loading.textContent='Digital AI: '+reply;
+
+chatHistory.push({
+role:'model',
+text:reply
+});
+
+saveChatHistory();
+
+}catch(error){
+
+loading.textContent='Error: '+error.message;
+
+}
+
+button.disabled=false;
+button.textContent='Send Message 🚀';
+
+box.scrollTop=box.scrollHeight;
+
+}
+
+function closeApp(){
+
+win.style.display='none';
+
+}
+
+function tick(){
+
+document.getElementById('clock').textContent=
+new Date().toLocaleString();
+
+}
+
+tick();
+
+setInterval(tick,1000);
+
+</script>
+
+</body>
+</html>

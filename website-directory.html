@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Dimag - Website Directory</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5fb;color:#172238}
+header{background:linear-gradient(120deg,#10254d,#176b91);color:white;padding:28px 20px;text-align:center}
+header h1{margin:0 0 8px;font-size:30px}
+header p{margin:0;color:#d8eaff}
+main{max-width:1100px;margin:auto;padding:22px}
+.search{width:100%;padding:15px;border:1px solid #ccd5e2;border-radius:12px;font-size:16px;margin-bottom:18px}
+.tabs{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:20px}
+.tabs button{padding:11px 15px;border:0;border-radius:9px;background:white;color:#243750;cursor:pointer}
+.tabs button.active{background:#2868c7;color:white}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.site{background:white;padding:17px;border-radius:13px;border:1px solid #e1e7f0}
+.site h3{margin:0 0 8px}
+.site p{color:#718098;font-size:13px;min-height:30px}
+.site a{display:inline-block;background:#2868c7;color:white;text-decoration:none;padding:9px 13px;border-radius:8px;font-size:13px}
+.site a:hover{background:#174e9c}
+.empty{color:#718098;text-align:center;padding:30px}
+footer{text-align:center;padding:25px;color:#78849a;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>🧠 DIGITAL DIMAG</h1>
+<p>Discover. Explore. Connect.</p>
+</header>
+<main>
+<input class="search" id="search" placeholder="🔎 Search websites..." oninput="render()">
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="sites"></div>
+</main>
+<footer>© Digital Dimag | Think Digital. Create More.</footer>
+<script>
+const categories={
+"All":[
+["Education","Khan Academy","Free learning resources","https://www.khanacademy.org/"],
+["Education","SWAYAM","Online courses in India","https://swayam.gov.in/"],
+["Education","NCERT","School textbooks and learning","https://ncert.nic.in/"],
+["Education","Coursera","Online courses","https://www.coursera.org/"],
+["Entertainment","YouTube","Videos and entertainment","https://www.youtube.com/"],
+["Entertainment","Spotify","Music streaming","https://open.spotify.com/"],
+["Entertainment","Netflix","Movies and series","https://www.netflix.com/"],
+["AI & Technology","ChatGPT","AI assistant","https://chatgpt.com/"],
+["AI & Technology","Gemini","Google AI assistant","https://gemini.google.com/"],
+["AI & Technology","GitHub","Code and projects","https://github.com/"],
+["Jobs & Career","LinkedIn","Jobs and professional network","https://www.linkedin.com/"],
+["Jobs & Career","Naukri","Find jobs in India","https://www.naukri.com/"],
+["Shopping","Amazon India","Online shopping","https://www.amazon.in/"],
+["Shopping","Flipkart","Online shopping","https://www.flipkart.com/"],
+["News","Google News","Latest news","https://news.google.com/"],
+["News","BBC News","World news","https://www.bbc.com/news/"]
+]};
+let active="All";
+const names=["All",...Object.keys(categories.All.reduce((a,s)=>(a[s[0]]=1,a),{}))];
+function renderTabs(){
+document.getElementById("tabs").innerHTML="";
+names.forEach(name=>{
+const b=document.createElement("button");
+b.textContent=name==="All"?"🌐 All":name;
+b.className=active===name?"active":"";
+b.onclick=()=>{active=name;render()};
+document.getElementById("tabs").appendChild(b);
+});
+}
+function render(){
+renderTabs();
+const q=document.getElementById("search").value.toLowerCase();
+const list=categories.All.filter(s=>(active==="All"||s[0]===active)&&s.slice(1,3).join(" ").toLowerCase().includes(q));
+const box=document.getElementById("sites");
+box.innerHTML="";
+if(!list.length){box.innerHTML='<div class="empty">No websites found.</div>';return}
+list.forEach(s=>{
+const card=document.createElement("article");
+card.className="site";
+const h=document.createElement("h3");h.textContent=s[1];
+const p=document.createElement("p");p.textContent=s[2];
+const a=document.createElement("a");a.href=s[3];a.target="_blank";a.rel="noopener noreferrer";a.textContent="Visit Website ↗";
+card.append(h,p,a);box.appendChild(card);
+});
+}
+render();
+</script>
+</body>
+</html>
